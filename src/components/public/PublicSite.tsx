@@ -3,6 +3,7 @@ import { ArrowRight, ArrowUpRight, BadgeCheck, Bath, Building2, Check, CheckCirc
 import { Link } from 'react-router-dom'
 import { useDemo } from '../../context/DemoContext'
 import { serviceCatalog } from '../../data/mockData'
+import { submitLeadToBackend } from '../../lib/backendApi'
 import { SectionHeading } from '../shared'
 import { ChatWidget } from './ChatWidget'
 import type { LucideIcon } from 'lucide-react'
@@ -30,7 +31,15 @@ export function PublicSite() {
   }
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    addLead({ customerName: form.customerName, email: form.email, phone: form.phone, service: form.service, issue: `${form.issue} Preferred date: ${form.date || 'Flexible'}. Address: ${form.address}`, source: 'Website form' })
+    const lead = addLead({ customerName: form.customerName, email: form.email, phone: form.phone, service: form.service, issue: `${form.issue} Preferred date: ${form.date || 'Flexible'}. Address: ${form.address}`, source: 'Website form' })
+    void submitLeadToBackend(lead).then((result) => {
+      if (!result.ok) {
+        notify(`Demo lead saved locally, but the backend is unavailable: ${result.error ?? 'Unknown backend error.'}`, 'warning')
+        return
+      }
+      const emailStatus = result.email?.status === 'sent' ? 'Resend accepted the admin notification.' : result.email?.status === 'failed' ? 'The email provider rejected the notification.' : 'No email was sent because Resend is not configured.'
+      notify(`Backend accepted ${lead.id}. ${emailStatus}`, result.email?.status === 'failed' ? 'warning' : 'info')
+    })
     setSubmitted(true)
   }
 
