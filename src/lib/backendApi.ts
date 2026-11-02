@@ -1,6 +1,7 @@
 import type { Lead } from '../types'
 
-const backendUrl = (import.meta.env.VITE_BACKEND_URL as string | undefined)?.replace(/\/$/, '') || 'http://127.0.0.1:8787'
+const configuredApiBaseUrl = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.trim()
+const backendUrl = (configuredApiBaseUrl || (import.meta.env.DEV ? 'http://127.0.0.1:8787' : 'https://aquaflow-backend-6ojk.onrender.com')).replace(/\/$/, '')
 
 export interface BackendLeadResult {
   ok: boolean
